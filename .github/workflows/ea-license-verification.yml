@@ -27,10 +27,10 @@ jobs:
       - name: Verify License Token
         env:
           LICENSE_TOKEN: ${{ secrets.LICENSE_TOKEN }}
-          CUSTOMER_ID: ${{ secrets.CUSTOMER_ID }}
+          GomerAI_ID: ${{ secrets.GomerAI_ID }}
           TENANT_ID: ${{ secrets.TENANT_ID }}
         run: |
-          echo "Verifying license for Customer ID: $CUSTOMER_ID"
+          echo "Verifying license for GomerAI ID: $GomerAI_ID"
           echo "Tenant ID: $TENANT_ID"
           echo "License token configured: ${LICENSE_TOKEN:0:10}..."
           # Add your license verification logic here
@@ -39,25 +39,25 @@ jobs:
         env:
           EA_BRIDGE_URL: ${{ secrets.EA_BRIDGE_URL }}
           EA_API_KEY: ${{ secrets.EA_API_KEY }}
-          CUSTOMER_ID: ${{ secrets.CUSTOMER_ID }}
+          GomerAI_ID: ${{ secrets.GomerAI_ID }}
         run: |
           echo "Testing connection to EA Bridge at: $EA_BRIDGE_URL"
           # Uncomment when bridge is ready:
           # curl -X POST $EA_BRIDGE_URL/health \
           #   -H "Authorization: Bearer $EA_API_KEY" \
-          #   -H "X-Customer-ID: $CUSTOMER_ID"
+          #   -H "X-GomerAI-ID: $GomerAI_ID"
       
       - name: Validate EA Configuration
         env:
           LICENSE_TOKEN: ${{ secrets.LICENSE_TOKEN }}
-          CUSTOMER_ID: ${{ secrets.CUSTOMER_ID }}
+          GomerAI_ID: ${{ secrets.GomerAI_ID }}
           TENANT_ID: ${{ secrets.TENANT_ID }}
           EA_BRIDGE_URL: ${{ secrets.EA_BRIDGE_URL }}
           EA_API_KEY: ${{ secrets.EA_API_KEY }}
         run: |
           echo "All configuration secrets are properly set:"
           echo "✓ LICENSE_TOKEN"
-          echo "✓ CUSTOMER_ID"
+          echo "✓ GomerAI_ID"
           echo "✓ TENANT_ID"
           echo "✓ EA_BRIDGE_URL"
           echo "✓ EA_API_KEY"
