@@ -31,7 +31,7 @@ The following secrets are configured in Settings > Secrets and variables > Actio
   - Used to validate the customer's license with the gomerai licensing system
   - Stored in the 10web database and synced to GH Secrets at onboarding
 
-- **`CUSTOMER_ID`** - Unique identifier for this customer
+- **`GomerAI_ID`** - Unique identifier for this customer
   - Example: `test_customer_001`
   - Used to identify the customer in all API calls and logging
 
@@ -46,89 +46,33 @@ The following secrets are configured in Settings > Secrets and variables > Actio
   - The bridge service connects the EA to Google Cloud (GC)
 
 - **`EA_API_KEY`** - Authentication key for EA to connect to the bridge
-  - Format: `sk_test_ea_api_key_*`
-  - Required for all EA → Bridge → GC communications
+  - Rotated periodically for security
+  - Allows EA to authenticate and send data to the bridge
 
-## GitHub Actions Workflow
+## Workflow: EA License Verification
 
-### EA License Verification and Configuration Test
+The `.github/workflows/ea-license-verification.yml` workflow:
 
-**File:** `.github/workflows/ea-license-verification.yml`
+1. **Triggers**: Runs on push to main branch, and scheduled (daily at 6 AM UTC)
+2. **Purpose**: Verifies the customer's license is valid and active
+3. **Process**:
+   - Fetches license status from 10web using `LICENSE_TOKEN` and `GomerAI_ID`
+   - Validates license is not expired or revoked
+   - Tests connectivity to EA Bridge using `EA_BRIDGE_URL` and `EA_API_KEY`
+   - Reports success or failure
 
-**Triggers:**
-- Manual workflow dispatch
-- Push to `main` branch
-- Daily scheduled run (midnight UTC)
+### Workflow Environment Variables
 
-**Purpose:**
-- Verifies that all required secrets are configured
-- Tests connectivity to the EA Bridge
-- Validates license tokens
-- Ensures the EA can authenticate and communicate
+All secrets are injected as environment variables during workflow execution:
 
-**Usage:**
-Navigate to Actions tab and manually trigger the workflow to test configuration.
-
-## Data Flow Architecture
-
+```yaml
+env:
+  LICENSE_TOKEN: ${{ secrets.LICENSE_TOKEN }}
+  GomerAI_ID: ${{ secrets.GomerAI_ID }}
+  TENANT_ID: ${{ secrets.TENANT_ID }}
+  EA_BRIDGE_URL: ${{ secrets.EA_BRIDGE_URL }}
+  EA_API_KEY: ${{ secrets.EA_API_KEY }}
 ```
-EA (Enterprise Agent)
-  ↓
-  ↓ [Authenticated with EA_API_KEY]
-  ↓
-EA Bridge Service
-  ↓
-  ↓ [License verified with LICENSE_TOKEN]
-  ↓
-Google Cloud (GC)
-```
-
-**Requirements for data flow:**
-1. ✅ Valid `LICENSE_TOKEN` (verified against 10web database)
-2. ✅ Valid `EA_API_KEY` (for EA → Bridge authentication)
-3. ✅ Accessible `EA_BRIDGE_URL` (bridge must be operational)
-4. ✅ Proper `CUSTOMER_ID` and `TENANT_ID` configuration
-
-## Testing This Repository
-
-### 1. Verify Secrets are Configured
-
-```bash
-# All secrets should be visible in:
-# Settings > Secrets and variables > Actions > Repository secrets
-```
-
-### 2. Run the Workflow
-
-1. Go to the **Actions** tab
-2. Select "EA License Verification and Configuration Test"
-3. Click "Run workflow"
-4. Monitor the workflow execution
-
-### 3. Expected Workflow Output
-
-```
-✓ LICENSE_TOKEN configured
-✓ CUSTOMER_ID configured
-✓ TENANT_ID configured
-✓ EA_BRIDGE_URL configured
-✓ EA_API_KEY configured
-Ready for EA data flow through bridge to GC
-```
-
-## Customer Onboarding Process
-
-This repository represents Step 3 in the customer onboarding workflow:
-
-1. **Customer Signs Up** - New customer account created
-2. **License Generated** - License token created in 10web database
-3. **GitHub Repository Created** ⬅️ *You are here*
-   - Dedicated repo created for customer
-   - Repository secrets populated from secure sources
-4. **EA Configured** - Enterprise Agent configured with secrets
-5. **Bridge Connection Tested** - Verify EA can connect to bridge
-6. **License Verified** - Confirm licensing is valid
-7. **Data Flow Enabled** - Customer can send data to GC
 
 ## Security Notes
 
@@ -142,16 +86,19 @@ This repository represents Step 3 in the customer onboarding workflow:
 ## Troubleshooting
 
 ### License Verification Fails
+
 - Verify `LICENSE_TOKEN` matches the token in 10web database
 - Check if license is active and not expired
-- Confirm `CUSTOMER_ID` is correct
+- Confirm `GomerAI_ID` is correct
 
 ### Bridge Connection Fails
+
 - Verify `EA_BRIDGE_URL` is accessible
 - Check `EA_API_KEY` is valid and not revoked
 - Ensure bridge service is running and healthy
 
 ### Workflow Errors
+
 - Review Actions logs for specific error messages
 - Verify all 5 secrets are configured in repository settings
 - Check network connectivity to bridge URL
@@ -166,6 +113,7 @@ This repository represents Step 3 in the customer onboarding workflow:
 ## Support
 
 For issues with this test customer repository:
+
 - Check the Actions workflow logs
 - Verify all secrets are properly configured
 - Contact gomerai support team
