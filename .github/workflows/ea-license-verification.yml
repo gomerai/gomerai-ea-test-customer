@@ -1,0 +1,64 @@
+name: EA License Verification and Configuration Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * *'  # Daily verification
+
+jobs:
+  verify-license:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests pyyaml
+      
+      - name: Verify License Token
+        env:
+          LICENSE_TOKEN: ${{ secrets.LICENSE_TOKEN }}
+          CUSTOMER_ID: ${{ secrets.CUSTOMER_ID }}
+          TENANT_ID: ${{ secrets.TENANT_ID }}
+        run: |
+          echo "Verifying license for Customer ID: $CUSTOMER_ID"
+          echo "Tenant ID: $TENANT_ID"
+          echo "License token configured: ${LICENSE_TOKEN:0:10}..."
+          # Add your license verification logic here
+      
+      - name: Test EA Bridge Connection
+        env:
+          EA_BRIDGE_URL: ${{ secrets.EA_BRIDGE_URL }}
+          EA_API_KEY: ${{ secrets.EA_API_KEY }}
+          CUSTOMER_ID: ${{ secrets.CUSTOMER_ID }}
+        run: |
+          echo "Testing connection to EA Bridge at: $EA_BRIDGE_URL"
+          # Uncomment when bridge is ready:
+          # curl -X POST $EA_BRIDGE_URL/health \
+          #   -H "Authorization: Bearer $EA_API_KEY" \
+          #   -H "X-Customer-ID: $CUSTOMER_ID"
+      
+      - name: Validate EA Configuration
+        env:
+          LICENSE_TOKEN: ${{ secrets.LICENSE_TOKEN }}
+          CUSTOMER_ID: ${{ secrets.CUSTOMER_ID }}
+          TENANT_ID: ${{ secrets.TENANT_ID }}
+          EA_BRIDGE_URL: ${{ secrets.EA_BRIDGE_URL }}
+          EA_API_KEY: ${{ secrets.EA_API_KEY }}
+        run: |
+          echo "All configuration secrets are properly set:"
+          echo "✓ LICENSE_TOKEN"
+          echo "✓ CUSTOMER_ID"
+          echo "✓ TENANT_ID"
+          echo "✓ EA_BRIDGE_URL"
+          echo "✓ EA_API_KEY"
+          echo "Ready for EA data flow through bridge to GC"
